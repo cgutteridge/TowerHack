@@ -24,7 +24,8 @@ if( @$_GET['ll'] )
 	#print "<hr />";
 	$RAD_TO_DEG = 360 / (2 * 3.14159265359);
 	$NORTH = 211;
-	$CAMERA_HEIGHT = "183"; # guestimate
+	$CAMERA_HEIGHT = 183; # guestimate
+	$effective_height = $CAMERA_HEIGHT - @$_GET["tallness"]*0.5;
 	
 	if( $off_n < 0 )
 	{
@@ -37,7 +38,7 @@ if( @$_GET['ll'] )
 		else { $ang = $NORTH+atan($off_e/$off_n) * $RAD_TO_DEG; }
 	}
 	$dist = round( sqrt( $off_n*$off_n + $off_e*$off_e ) );
-	$vang = atan( $CAMERA_HEIGHT / $dist )*$RAD_TO_DEG;
+	$vang = atan( $effective_height / $dist )*$RAD_TO_DEG;
 	#print "ANG: ".$ang."<br />\n";	
 	#print "DIST: ".$dist."m<br />";
 	#print "VANG: ".$vang;
@@ -69,19 +70,19 @@ if( @$_GET['ll'] )
 	print "</td></tr>";
 
 	print "<tr><td style='height:220px;'>";
-	print "PLACEHOLDER";
+	print "&nbsp;";
 	print "</td></tr></table>";
 
 	print "<div style='width:100%; position:fixed; height:220px; bottom:0px; left:0px; background-color:black'>";
 	print "<div style='width:100%; overflow-x:scroll;white-space:pre'><nobr>";
 	print "<img style='border-top:solid 2px black;border-right:solid 2px black;' src='http://maps.googleapis.com/maps/api/staticmap?&size=200x200&markers=color:blue%7Clabel:B%7C51.5215,-0.1389&markers=color:red%7Clabel:X%7C$lat,$long&sensor=false&maptype=hybrid' />";
-	for( $h=0;$h<360;$h+=90 )
-	{
-		print "<img style='border-left: solid 2px black;border-top:solid 2px black' src='http://maps.googleapis.com/maps/api/streetview?size=200x200&location=$lat,$long&sensor=false&key=AIzaSyBBzPDPmNjo3F2sw-Zw-HAsR9aov0SX-_A&pitch=30&heading=$h' />";
-	}
 	if( @$_GET["pic"] )
 	{
 		print "<img style='height:200px;border-left: solid 2px #000; border-top:solid 2px #000' src='".$_GET["pic"]."' />";
+	}
+	for( $h=0;$h<360;$h+=45 )
+	{
+		print "<img style='border-left: solid 2px black;border-top:solid 2px black' src='http://maps.googleapis.com/maps/api/streetview?size=200x200&location=$lat,$long&sensor=false&key=AIzaSyBBzPDPmNjo3F2sw-Zw-HAsR9aov0SX-_A&pitch=30&heading=$h' />";
 	}
 	#print "<div style='position:absolute;top:10px;left:204px;font-size:80%'><div style='padding:5px;background-color:#000; color:#fff'>North</div></div>";
 	#print "<div style='position:absolute;top:10px;left:406px;font-size:80%'><div style='padding:5px;background-color:#000; color:#fff'>East</div></div>";
@@ -120,7 +121,13 @@ if( @$_GET["postcode"] )
 	$postcode = urldecode($_GET["postcode"] );
 	$lookup=true;
 }
+print "<!DOCTYPE html>\n";
+print "<html style='height:100%;width:100%'>";
 print "
+<img src='https://www.southampton.ac.uk/images/bg_logo_small.png' style='margin:15px;float:right' />
+<h1>TowerHack</h1>
+<p>A mash-up by <a href='http://users.ecs.soton.ac.uk/cjg/'>Christopher Gutteridge</a> (<a href='http://twitter.com/cgutteridge'>@cgutteridge</a>) at the <a href='http://www.soton.ac.uk/'>University of Southampton</a>. This uses Ordnance Survy postcode data or data from <a href='http://dbpedia.org/'>DBPedia</a> to try to work out the correct orientation on a panoramic picture of London taken from the BT Tower. (open data for the win!). Oh, and it throws in a Google map + street view n/s/e/w views and an image from wikipedia if it can find one.</p>
+
 <form>
 Lat/Long: <input size='30' value='51.538333, -0.013333' name='ll' /> <input type='submit' />
 </form>
@@ -135,11 +142,14 @@ Wikipedia thing:
 <input type='submit' />
 </form>
 ";
-print "<p>PRO TIP: obviously tall things are more likely to be visible. Street level is obscured. The camera should center more or less on the ground location of the thing.</p>";
+print "<p>PRO TIP: obviously tall things are more likely to be visible. Street level is obscured. The camera should center more or less on the ground location of the thing, but you may need to pan slightly in some cases, such is life.</p>";
 
 if(!$lookup)
 {
+	print "<h2 style='margin:0px'>Quick list of things from wikipedia which are more or less visible:</h2>";
 	readfile( "list.html" );
+	print "<p>Thanks to Graeme Earl for the suggestion of this hacky little app.</p>";
+	print "<p>For extra points, if wikipedia mentions the number of floors then the camera angle is adjusted to around half way up based on an estimated 4m per floor.</p>";
 	exit;
 }
 
@@ -198,6 +208,13 @@ if( ! ( $thing->has( "geo:lat" ) && $thing->has( "geo:long" ) ) )
 	}
 }
 $pic = "";
+$tallness = 0;
+$STOREY_HEIGHT = 4.0;
+if( $thing->has( "http://dbpedia.org/ontology/floorCount" ) )
+{
+	$tallness = $thing->getLiteral( "http://dbpedia.org/ontology/floorCount" ) * $STOREY_HEIGHT;
+}
+	
 if( $thing->has( "foaf:depiction" ) )
 {
 	$pic = $thing->get( "foaf:depiction" );
@@ -210,5 +227,5 @@ $title = $thing->label();
 #print "($lat :: $long)<br />";
 $lat = $thing->getLiteral( "geo:lat" );
 $long = $thing->getLiteral( "geo:long" );
-header( "Location: http://lemur.ecs.soton.ac.uk/~cjg/towerhack/?ll=$lat,$long&title=".urlencode($title)."&pic=".urlencode($pic) );
+header( "Location: http://lemur.ecs.soton.ac.uk/~cjg/towerhack/?ll=$lat,$long&title=".urlencode($title)."&pic=".urlencode($pic)."&tallness=$tallness" );
 exit;
