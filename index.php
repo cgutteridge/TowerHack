@@ -150,6 +150,7 @@ if(!$lookup)
 	readfile( "list.html" );
 	print "<p>Thanks to Graeme Earl for the suggestion of this hacky little app.</p>";
 	print "<p>For extra points, if wikipedia mentions the number of floors then the camera angle is adjusted to around half way up based on an estimated 4m per floor.</p>";
+	print "<p>The code for this is a lashup, but if you are interested in it despite it's shonkyness; it's here: <a href='https://github.com/cgutteridge/TowerHack'>https://github.com/cgutteridge/TowerHack</a>. What the hell, lets place it in the public domain.</p>";
 	exit;
 }
 
