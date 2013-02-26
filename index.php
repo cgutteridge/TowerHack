@@ -52,6 +52,7 @@ if( @$_GET['ll'] )
 
 
 	$url = "http://btlondon2012.co.uk/pano.html?view.hlookat=$ang&view.vlookat=$vang&view.fov=$fov";
+	$url = "http://btlondon2012.co.uk/panorama/index.html?view.hlookat=$ang&view.vlookat=$vang&view.fov=$fov";
 	#print "<!DOCTYPE html>\n";
 	$title = "$lat,$long";
 	if( @$_GET["title"] )
@@ -60,13 +61,20 @@ if( @$_GET['ll'] )
 	}
 	print "<!DOCTYPE html>\n";
 	print "<html style='height:100%;width:100%'>";
+	print "<script src='http://code.jquery.com/jquery-1.6.4.js' ></script>";
 	print "<title>$title</title>";
 
 	print "<body style='margin:0;height:100%;width:100%;overflow:hidden'>";
 
 	print "<table style='height:100%;width:100%' cellpadding='0' cellspacing='0' border='1' >";
-	print "<tr><td style='height:100%'>";
-	print "<iframe src='$url' style='width:100%;height:100%;overflow:hidden'></iframe>";
+	print "<tr><td style='height:100%;' id='iframe-area'>";
+	#print "<iframe src='$url' height='100%' style='border:solid 2px green;width:100%;height:100%;overflow:hidden'></iframe>";
+	$html = 'id="krpanoSWFObject" width="100%" flashvars="browser.useragent=Mozilla/5.0 (Macintosh; Intel Mac OS X 10.7; rv:18.0) Gecko/20100101 Firefox/18.0&view.hlookat='.$ang.'&view.vlookat='.$vang.'&view.fov='.$fov.'&xml=http://btlondon2012.co.uk/panorama/pano.xml" allowscriptaccess="always" allowfullscreen="true" bgcolor="#000000" name="krpanoSWFObject" style="outline:none;" src="http://btlondon2012.co.uk/panorama/index.swf" type="application/x-shockwave-flash">';
+	print "<script>";
+	print "$(function(){ thing=$('#iframe-area');
+	thing.html( '<embed height='+thing.height()+' $html' );
+	});";
+	print "</script>";
 	print "</td></tr>";
 
 	print "<tr><td style='height:220px;'>";
