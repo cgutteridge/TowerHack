@@ -106,7 +106,12 @@ if( @$_GET['ll'] )
 	print "</div>";
 	print "</td></tr>";
 	print "</table>"; 
-	print "<div style='position:fixed;top:0;left:0px'><div style='padding:5px;margin: 5px; background-color:#000; color:#fff'>$title<br />".sprintf( "%0.1f",$dist/1000)."km</div></div>";
+	print "<div style='position:fixed;top:0;left:0px'><div style='padding:5px;margin: 5px; background-color:#000; color:#fff'>$title<br />".sprintf( "%0.1f",$dist/1000)."km";
+	if( @$_GET["floors"] )
+	{
+		print "<br />".$_GET["floors"]." floors";
+	}
+	print "</div></div>";
 	print "</body>";
 #http://btlondon2012.co.uk/pano.html?view.hlookat=6.7150&view.vlookat=4.1479&view.fov=5.8210
 	exit;
@@ -134,7 +139,7 @@ print "<html style='height:100%;width:100%'>";
 print "
 <img src='https://www.southampton.ac.uk/images/bg_logo_small.png' style='margin:15px;float:right' />
 <h1>TowerHack</h1>
-<p>A mash-up by <a href='http://users.ecs.soton.ac.uk/cjg/'>Christopher Gutteridge</a> (<a href='http://twitter.com/cgutteridge'>@cgutteridge</a>) at the <a href='http://www.soton.ac.uk/'>University of Southampton</a>. This uses Ordnance Survy postcode data or data from <a href='http://dbpedia.org/'>DBPedia</a> to try to work out the correct orientation on a panoramic picture of London taken from the BT Tower. (open data for the win!). Oh, and it throws in a Google map + street view n/s/e/w views and an image from wikipedia if it can find one.</p>
+<p>A mash-up by <a href='http://users.ecs.soton.ac.uk/cjg/'>Christopher Gutteridge</a> (<a href='http://twitter.com/cgutteridge'>@cgutteridge</a>) at the <a href='http://www.soton.ac.uk/'>University of Southampton</a>. This uses Ordnance Survey postcode data or data from <a href='http://dbpedia.org/'>DBPedia</a> to try to work out the correct orientation on a panoramic picture of London taken from the BT Tower. (open data for the win!). Oh, and it throws in a Google map + street view n/s/e/w views and an image from wikipedia if it can find one.</p>
 
 <form>
 Lat/Long: <input size='30' value='51.538333, -0.013333' name='ll' /> <input type='submit' />
@@ -218,10 +223,12 @@ if( ! ( $thing->has( "geo:lat" ) && $thing->has( "geo:long" ) ) )
 }
 $pic = "";
 $tallness = 0;
+$floors = "";
 $STOREY_HEIGHT = 4.0;
 if( $thing->has( "http://dbpedia.org/ontology/floorCount" ) )
 {
-	$tallness = $thing->getLiteral( "http://dbpedia.org/ontology/floorCount" ) * $STOREY_HEIGHT;
+	$floors = $thing->getLiteral( "http://dbpedia.org/ontology/floorCount" );
+	$tallness = $floors * $STOREY_HEIGHT;
 }
 	
 if( $thing->has( "foaf:depiction" ) )
@@ -236,5 +243,5 @@ $title = $thing->label();
 #print "($lat :: $long)<br />";
 $lat = $thing->getLiteral( "geo:lat" );
 $long = $thing->getLiteral( "geo:long" );
-header( "Location: http://lemur.ecs.soton.ac.uk/~cjg/towerhack/?ll=$lat,$long&title=".urlencode($title)."&pic=".urlencode($pic)."&tallness=$tallness" );
+header( "Location: http://lemur.ecs.soton.ac.uk/~cjg/towerhack/?ll=$lat,$long&title=".urlencode($title)."&pic=".urlencode($pic)."&tallness=$tallness&floors=$floors" );
 exit;
